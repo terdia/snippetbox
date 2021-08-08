@@ -22,7 +22,7 @@ services:
         MYSQL_USER: terdia
         MYSQL_PASSWORD: password
     ports:
-        - "3306:3306"
+        - "33065:3306"
     networks: 
         - fullstack 
     volumes:
