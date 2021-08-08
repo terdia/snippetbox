@@ -1,0 +1,37 @@
+version: "3"
+services:
+  app:
+    container_name: snippetbox
+    restart: unless-stopped
+    build: .
+    volumes:
+      - .:/go/src/snippetbox
+    ports:
+        - "4000:4000"
+    networks: 
+        - fullstack 
+    depends_on: 
+        - db
+
+  db:
+    container_name: database
+    image: mysql:5.7
+    environment:
+        MYSQL_ROOT_PASSWORD: password
+        MYSQL_DATABASE: snippetbox
+        MYSQL_USER: terdia
+        MYSQL_PASSWORD: password
+    ports:
+        - "3306:3306"
+    networks: 
+        - fullstack 
+    volumes:
+        - database_data:/var/lib/mysql
+
+volumes: 
+    database_data:
+
+networks: 
+    fullstack:
+        driver: bridge
+
