@@ -11,10 +11,10 @@ bs:
 build:
 	$(DOCKER_COMPOSE) build
 
-run:
+up-bg:
 	$(DOCKER_COMPOSE) up -d
 
-run-v:
+up:
 	$(DOCKER_COMPOSE) up
 
 start:
@@ -35,3 +35,7 @@ restart:
 
 destroy:
 	$(DOCKER_COMPOSE) down -v
+
+
+down:
+	$(DOCKER_COMPOSE) down
