@@ -20,14 +20,20 @@ up:
 start:
 	$(DOCKER_COMPOSE) start
 
-logs:
-	$(DOCKER_COMPOSE) logs -f
-
 stop:
 	$(DOCKER_COMPOSE) stop
 
 enter:
 	docker exec -it snippetbox sh
+
+enter-db:
+	docker exec -it database sh
+
+logs:
+	$(DOCKER_COMPOSE) logs -f
+
+down:
+	$(DOCKER_COMPOSE) down
 
 restart:
 	@make -s stop
@@ -36,6 +42,3 @@ restart:
 destroy:
 	$(DOCKER_COMPOSE) down -v
 
-
-down:
-	$(DOCKER_COMPOSE) down
