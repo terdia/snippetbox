@@ -14,8 +14,8 @@
             
             <pre><code>{{.Content}}</code></pre>
             <div class='metadata'>
-                <time>Created: {{.Created.Weekday}}</time>
-                <time>Expires: {{.Expires.String}}</time>
+                <time>Created: {{toHumanReadable .Created}}</time>
+                <time>Expires: {{toHumanReadable .Expires}}</time>
             </div>
         </div>
     {{ end }}
