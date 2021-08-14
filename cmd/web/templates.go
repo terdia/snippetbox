@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/terdia/snippetbox/pkg/forms"
 	"github.com/terdia/snippetbox/pkg/models"
 )
 
@@ -12,11 +13,12 @@ type templateData struct {
 	CurrentYear int
 	Snippet     *models.Snippet
 	Snippets    []*models.Snippet
+	Form        *forms.Form
 }
 
 //custom func for templates
 func toHumanReadable(t time.Time) string {
-	return t.Format("O2 Jan 2006 at 15:04")
+	return t.Format("2 Jan 2006 at 15:04")
 }
 
 var (

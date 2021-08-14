@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi"
+	"github.com/terdia/snippetbox/pkg/forms"
 	"github.com/terdia/snippetbox/pkg/models"
 )
 
@@ -50,16 +51,39 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) createSnippetForm(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Create a new snippet..."))
+	app.render(w, r, "create.page.tmpl", &templateData{
+		Form: forms.New(nil),
+	})
 }
 
 func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 
-	title := "O smail"
-	content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n– Kobayashi Issa"
-	expires := "7"
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
 
-	id, err := app.snippets.Insert(title, content, expires)
+		return
+	}
+
+	form := forms.New(r.PostForm)
+	form.Required("title", "content", "expires")
+	form.MaxLength("title", 100)
+	form.PermittedValues("expires", "365", "7", "1")
+
+	// If the form isn't valid, redisplay the template passing in the
+	// form.Form object as the data.
+	if !form.Valid() {
+		app.render(w, r, "create.page.tmpl", &templateData{
+			Form: form,
+		})
+
+		return
+	}
+
+	// Because the form data (with type url.Values) has been anonymously embedded
+	// in the form.Form struct, we can use the Get() method to retrieve
+	// the validated value for a particular form field.
+	id, err := app.snippets.Insert(form.Get("title"), form.Get("content"), form.Get("expires"))
 	if err != nil {
 		app.serverError(w, err)
 	}
