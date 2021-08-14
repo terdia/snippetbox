@@ -55,6 +55,9 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, name stri
 	}
 
 	// Write the contents of the buffer to the http.ResponseWriter.
-	buf.WriteTo(w)
+	_, err = buf.WriteTo(w)
+	if err != nil {
+		app.serverError(w, err)
+	}
 
 }
