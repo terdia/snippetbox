@@ -12,15 +12,20 @@ services:
         - fullstack 
     depends_on: 
         - db
+    environment: 
+        DB_USERNAME: ${DB_USERNAME}
+        DB_PASSWORD: ${DB_PASSWORD}
+        DB_HOST: ${DB_HOST}
+        DB_SCHEMA: ${DB_SCHEMA}
 
   db:
     container_name: database
     image: mysql:5.7
     environment:
-        MYSQL_ROOT_PASSWORD: password
-        MYSQL_DATABASE: snippetbox
-        MYSQL_USER: terdia
-        MYSQL_PASSWORD: password
+        MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+        MYSQL_DATABASE: ${DB_SCHEMA}
+        MYSQL_USER: ${DB_USERNAME}
+        MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
         - "33065:3306"
     networks: 
@@ -34,4 +39,3 @@ volumes:
 networks: 
     fullstack:
         driver: bridge
-

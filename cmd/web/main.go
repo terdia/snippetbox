@@ -1,72 +1,54 @@
 package main
 
 import (
-	"database/sql"
 	"flag"
 	"html/template"
-	"log"
 	"net/http"
-	"os"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/terdia/snippetbox/pkg/datasource"
+	"github.com/terdia/snippetbox/pkg/logger"
 	"github.com/terdia/snippetbox/pkg/models/mysql"
 )
 
 type application struct {
-	errorLog      *log.Logger
-	infoLog       *log.Logger
 	snippets      *mysql.SnippetModel
 	templateCache map[string]*template.Template
+	logger        *logger.SnippetLogger
 }
 
 func main() {
 
 	addr := flag.String("addr", ":4000", "Http network address.")
-	dsn := flag.String("dsn", "terdia:password@tcp(database)/snippetbox?parseTime=true", "MySQL Datasource name.")
 	flag.Parse()
 
-	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
-	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+	sLogger := logger.New()
 
-	db, err := openDb(*dsn)
+	connectionPool, err := datasource.NewConnectionPool()
 	if err != nil {
-		errorLog.Fatal(err)
+		sLogger.Error.Fatal(err)
 	}
-	defer db.Close()
+	defer connectionPool.DB.Close()
 
 	templateCache, err := newTemplateCache("./ui/html")
 	if err != nil {
-		errorLog.Fatal(err)
+		sLogger.Error.Fatal(err)
 	}
 
 	app := &application{
-		infoLog:       infoLog,
-		errorLog:      errorLog,
-		snippets:      &mysql.SnippetModel{DB: db},
+		snippets:      &mysql.SnippetModel{DB: connectionPool.DB},
 		templateCache: templateCache,
+		logger:        sLogger,
 	}
 
 	httpServer := &http.Server{
 		Addr:     *addr,
-		ErrorLog: app.errorLog,
+		ErrorLog: app.logger.Error,
 		Handler:  app.routes(),
 	}
 
-	app.infoLog.Printf("Starting server on %s", *addr)
+	app.logger.Info.Printf("Starting server on %s", *addr)
 	err = httpServer.ListenAndServe()
 
-	app.errorLog.Fatal(err)
-}
-
-func openDb(dsn string) (*sql.DB, error) {
-	db, err := sql.Open("mysql", dsn)
-	if err != nil {
-		return nil, err
-	}
-
-	if err = db.Ping(); err != nil {
-		return nil, err
-	}
-
-	return db, nil
+	app.logger.Error.Fatal(err)
 }

@@ -21,7 +21,7 @@ func (app *application) logRequest(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		//log every request like so e.g. 172.18.0.1:60504 - HTTP/1.1 GET /snippet?id=4
-		app.infoLog.Printf("%s - %s %s %s", r.RemoteAddr, r.Proto, r.Method, r.URL.RequestURI())
+		app.logger.Info.Printf("%s - %s %s %s", r.RemoteAddr, r.Proto, r.Method, r.URL.RequestURI())
 
 		next.ServeHTTP(rw, r)
 	})
