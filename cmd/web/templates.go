@@ -14,6 +14,7 @@ type templateData struct {
 	Snippet     *models.Snippet
 	Snippets    []*models.Snippet
 	Form        *forms.Form
+	Flash       string
 }
 
 //custom func for templates

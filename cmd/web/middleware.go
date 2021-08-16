@@ -34,6 +34,8 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 		defer func() {
 			// Check if there has been a panic or not use the builtin recover function.
 			if err := recover(); err != nil {
+				//sentry.CurrentHub().Recover(err)
+				//sentry.Flush(time.Second * 5)
 				// Set a "Connection: close" header on the response,
 				//a triggers an automatic close of current connection.
 				//after a response has been sent

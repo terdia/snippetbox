@@ -17,6 +17,7 @@ services:
         DB_PASSWORD: ${DB_PASSWORD}
         DB_HOST: ${DB_HOST}
         DB_SCHEMA: ${DB_SCHEMA}
+        SESSION_SECRET: ${SESSION_SECRET}
 
   db:
     container_name: database
