@@ -23,10 +23,10 @@ start:
 stop:
 	$(DOCKER_COMPOSE) stop
 
-enter:
+shell:
 	docker exec -it snippetbox sh
 
-enter-db:
+db-shell:
 	docker exec -it database sh
 
 logs:

@@ -9,11 +9,15 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/terdia/snippetbox/pkg/forms"
 	"github.com/terdia/snippetbox/pkg/models"
+	"github.com/terdia/snippetbox/pkg/repository"
+	"github.com/terdia/snippetbox/pkg/services"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
-	snippets, err := app.snippets.Latest()
+	service := services.NewSnippetService(repository.NewSnippetRepository(app.DB))
+
+	snippets, err := service.GetLatest()
 	if err != nil {
 		app.serverError(w, err)
 
@@ -35,7 +39,9 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s, err := app.snippets.Get(id)
+	service := services.NewSnippetService(repository.NewSnippetRepository(app.DB))
+
+	s, err := service.GetById(id)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
 			app.notFound(w)
@@ -65,14 +71,13 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	form := forms.New(r.PostForm)
-	form.Required("title", "content", "expires")
-	form.MaxLength("title", 100)
-	form.PermittedValues("expires", "365", "7", "1")
+	service := services.NewSnippetService(repository.NewSnippetRepository(app.DB))
+
+	id, form, err := service.CreateSnippet(forms.New(r.PostForm))
 
 	// If the form isn't valid, redisplay the template passing in the
 	// form.Form object as the data.
-	if !form.Valid() {
+	if form != nil {
 		app.render(w, r, "create.page.tmpl", &templateData{
 			Form: form,
 		})
@@ -80,10 +85,6 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Because the form data (with type url.Values) has been anonymously embedded
-	// in the form.Form struct, we can use the Get() method to retrieve
-	// the validated value for a particular form field.
-	id, err := app.snippets.Insert(form.Get("title"), form.Get("content"), form.Get("expires"))
 	if err != nil {
 		app.serverError(w, err)
 	}

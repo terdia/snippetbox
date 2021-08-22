@@ -33,6 +33,7 @@ func (app *application) addDefaultData(td *templateData, r *http.Request) *templ
 	}
 
 	td.CurrentYear = time.Now().Year()
+	td.IsAuthenticated = app.isAuthenticated(r)
 
 	// Add the flash message to the template data, if one exists.
 	td.Flash = app.session.PopString(r, "flash")
@@ -45,7 +46,7 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, name stri
 	// (like 'home.page.tmpl').
 	ts, ok := app.templateCache[name]
 	if !ok {
-		app.serverError(w, fmt.Errorf("The template %s does not exist", name))
+		app.serverError(w, fmt.Errorf("the template %s does not exist", name))
 		return
 	}
 
@@ -67,4 +68,24 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, name stri
 		app.serverError(w, err)
 	}
 
+}
+
+func (app *application) isAuthenticated(r *http.Request) bool {
+	return app.session.Exists(r, "authenticatedUserID")
+}
+
+//todo: proper sentry implementation
+func (app *application) initSentry() {
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: "https://837f2bf7b3854cdaa07c2315de0293ec@o959477.ingest.sentry.io/5907807",
+		//prod:Dsn: "https://f026770da7a24f5d908f6169f1540617@o959477.ingest.sentry.io/5908771",
+		Environment:      "dev",
+		Debug:            true,
+		AttachStacktrace: true,
+	})
+	if err != nil {
+		app.logger.Error.Fatalf("sentry.Init: %s", err)
+	}
+	// Flush buffered events before the program terminates.
+	defer sentry.Flush(2 * time.Second)
 }

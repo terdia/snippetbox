@@ -36,6 +36,7 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 			if err := recover(); err != nil {
 				//sentry.CurrentHub().Recover(err)
 				//sentry.Flush(time.Second * 5)
+
 				// Set a "Connection: close" header on the response,
 				//a triggers an automatic close of current connection.
 				//after a response has been sent
@@ -44,6 +45,24 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 				app.serverError(rw, fmt.Errorf("%s", err))
 			}
 		}()
+
+		next.ServeHTTP(rw, r)
+	})
+}
+
+func (app *application) requireAuthentication(next http.Handler) http.Handler {
+
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+
+		if !app.isAuthenticated(r) {
+			http.Redirect(rw, r, "/user/login", http.StatusSeeOther)
+			return
+		}
+
+		// Otherwise set the "Cache-Control: no-store" header so that pages
+		// require authentication are not stored in the users browser cache (or
+		// other intermediary cache).
+		rw.Header().Add("Cache-Control", "no-store")
 
 		next.ServeHTTP(rw, r)
 	})

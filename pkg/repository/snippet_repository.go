@@ -1,4 +1,4 @@
-package mysql
+package repository
 
 import (
 	"database/sql"
@@ -7,16 +7,26 @@ import (
 	"github.com/terdia/snippetbox/pkg/models"
 )
 
-type SnippetModel struct {
-	DB *sql.DB
+type SnippetRepository interface {
+	Insert(title, content, expires string) (int, error)
+	GetById(id int) (*models.Snippet, error)
+	Latest() ([]*models.Snippet, error)
 }
 
-func (m *SnippetModel) Insert(title, content, expires string) (int, error) {
+type snippetRepository struct {
+	*sql.DB
+}
+
+func NewSnippetRepository(db *sql.DB) SnippetRepository {
+	return &snippetRepository{db}
+}
+
+func (repo *snippetRepository) Insert(title, content, expires string) (int, error) {
 
 	stmt := `INSERT INTO snippets (title, content, created, expires)
 			 VALUES(?, ?, UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? DAY))`
 
-	result, err := m.DB.Exec(stmt, title, content, expires)
+	result, err := repo.DB.Exec(stmt, title, content, expires)
 	if err != nil {
 		return 0, err
 	}
@@ -29,14 +39,14 @@ func (m *SnippetModel) Insert(title, content, expires string) (int, error) {
 	return int(id), nil
 }
 
-func (m *SnippetModel) Get(id int) (*models.Snippet, error) {
+func (repo *snippetRepository) GetById(id int) (*models.Snippet, error) {
 
 	stmt := `SELECT id, title, content, created, expires FROM snippets
 			 WHERE expires > UTC_TIMESTAMP() AND id = ?`
 
 	snippet := &models.Snippet{}
 
-	err := m.DB.QueryRow(stmt, id).Scan(
+	err := repo.DB.QueryRow(stmt, id).Scan(
 		&snippet.ID,
 		&snippet.Title,
 		&snippet.Content,
@@ -54,12 +64,12 @@ func (m *SnippetModel) Get(id int) (*models.Snippet, error) {
 	return snippet, nil
 }
 
-func (m *SnippetModel) Latest() ([]*models.Snippet, error) {
+func (repo *snippetRepository) Latest() ([]*models.Snippet, error) {
 
 	stmt := `SELECT id, title, content, created, expires FROM snippets
 			 WHERE expires > UTC_TIMESTAMP() ORDER BY created DESC LIMIT 10`
 
-	rows, err := m.DB.Query(stmt)
+	rows, err := repo.DB.Query(stmt)
 	if err != nil {
 		return nil, err
 	}
