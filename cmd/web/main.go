@@ -50,6 +50,7 @@ func main() {
 	app.initSentry()
 
 	tlsConfig := &tls.Config{
+		MinVersion:               tls.VersionTLS12,
 		PreferServerCipherSuites: true, // prefer go cipher suites
 		CurvePreferences:         []tls.CurveID{tls.X25519, tls.CurveP256},
 	}

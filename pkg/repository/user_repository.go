@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/go-sql-driver/mysql"
@@ -49,7 +48,8 @@ func (repo *repository) Insert(name, email, password string) error {
 
 func (repo *repository) Unique(field, value string) bool {
 
-	stmt := fmt.Sprintf("SELECT %s FROM users WHERE %s = ?", field, field)
+	stmt := "SELECT " + field + " FROM users WHERE " + field + " = ?"
+
 	var email string
 	row := repo.DB.QueryRow(stmt, value)
 
