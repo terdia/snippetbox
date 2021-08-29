@@ -21,7 +21,11 @@ type templateData struct {
 
 //custom func for templates
 func toHumanReadable(t time.Time) string {
-	return t.Format("2 Jan 2006 at 15:04")
+	if t.IsZero() {
+		return ""
+	}
+
+	return t.UTC().Format("2 Jan 2006 at 15:04")
 }
 
 var (
