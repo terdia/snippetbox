@@ -26,6 +26,11 @@ func NewUserService(repo repository.UserRepository, passwordService PasswordHash
 	}
 }
 
+func (service *userService) GetById(id int) (*models.User, error) {
+
+	return service.repository.GetById(id)
+}
+
 func (service *userService) SignupUser(form *forms.Form) (*forms.Form, error) {
 
 	form.Required("name", "email", "password")

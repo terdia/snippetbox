@@ -25,7 +25,19 @@ func NewUserRepository(db *sql.DB) UserRepository {
 }
 
 func (repo *repository) GetById(id int) (*models.User, error) {
-	return nil, nil
+	u := &models.User{}
+
+	stmt := `SELECT id, name, email, created, active FROM users WHERE id = ?`
+	err := repo.DB.QueryRow(stmt, id).Scan(&u.ID, &u.Name, &u.Email, &u.Created, &u.Active)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, models.ErrNoRecord
+		} else {
+			return nil, err
+		}
+	}
+
+	return u, nil
 }
 
 func (repo *repository) Insert(name, email, password string) error {

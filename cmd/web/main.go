@@ -15,6 +15,10 @@ import (
 	"github.com/terdia/snippetbox/pkg/session"
 )
 
+type contextKey string
+
+const contextKeyIsAuthenticated = contextKey("isAuthenticated")
+
 type application struct {
 	logger        *logger.SnippetLogger
 	session       *sessions.Session

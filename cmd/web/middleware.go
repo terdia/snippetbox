@@ -1,10 +1,15 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/justinas/nosurf"
+	"github.com/terdia/snippetbox/pkg/models"
+	"github.com/terdia/snippetbox/pkg/repository"
+	"github.com/terdia/snippetbox/pkg/services"
 )
 
 func secureHeaders(next http.Handler) http.Handler {
@@ -77,4 +82,39 @@ func noSurf(next http.Handler) http.Handler {
 	)
 
 	return csrfHandler
+}
+
+func (app *application) authenticate(next http.Handler) http.Handler {
+
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		exists := app.session.Exists(r, "authenticatedUserID")
+		if !exists {
+			next.ServeHTTP(rw, r)
+
+			return
+		}
+
+		//to be cleanup up, during dependency injection refactoring
+		userService := services.NewUserService(
+			repository.NewUserRepository(app.DB),
+			services.NewPasswordService(),
+		)
+
+		user, err := userService.GetById(app.session.GetInt(r, "authenticatedUserID"))
+		if errors.Is(err, models.ErrNoRecord) || !user.Active {
+			app.session.Remove(r, "authenticatedUserID")
+			next.ServeHTTP(rw, r)
+
+			return
+		} else if err != nil {
+			app.serverError(rw, err)
+
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), contextKeyIsAuthenticated, true)
+
+		next.ServeHTTP(rw, r.WithContext(ctx))
+
+	})
 }
