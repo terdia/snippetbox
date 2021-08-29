@@ -4,8 +4,6 @@ import (
 	"net/http"
 
 	"github.com/terdia/snippetbox/pkg/forms"
-	"github.com/terdia/snippetbox/pkg/repository"
-	"github.com/terdia/snippetbox/pkg/services"
 )
 
 func (app *application) signupUserForm(w http.ResponseWriter, r *http.Request) {
@@ -20,12 +18,7 @@ func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
 		app.clientError(w, http.StatusBadRequest)
 	}
 
-	userService := services.NewUserService(
-		repository.NewUserRepository(app.DB),
-		services.NewPasswordService(),
-	)
-
-	form, err := userService.SignupUser(forms.New(r.PostForm))
+	form, err := app.userService.SignupUser(forms.New(r.PostForm))
 
 	if form != nil {
 		app.render(w, r, "signup.page.tmpl", &templateData{Form: form})
@@ -56,12 +49,7 @@ func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 		app.clientError(w, http.StatusBadRequest)
 	}
 
-	userService := services.NewUserService(
-		repository.NewUserRepository(app.DB),
-		services.NewPasswordService(),
-	)
-
-	authResponse := userService.Authenticate(forms.New(r.PostForm))
+	authResponse := app.userService.Authenticate(forms.New(r.PostForm))
 	form := authResponse.Form
 	err = authResponse.Error
 	user := authResponse.User

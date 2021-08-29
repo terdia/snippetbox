@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/tls"
-	"database/sql"
 	"flag"
 	"html/template"
 	"net/http"
@@ -12,6 +11,8 @@ import (
 	"github.com/golangcollege/sessions"
 	"github.com/terdia/snippetbox/pkg/datasource"
 	"github.com/terdia/snippetbox/pkg/logger"
+	"github.com/terdia/snippetbox/pkg/repository"
+	"github.com/terdia/snippetbox/pkg/services"
 	"github.com/terdia/snippetbox/pkg/session"
 )
 
@@ -20,10 +21,11 @@ type contextKey string
 const contextKeyIsAuthenticated = contextKey("isAuthenticated")
 
 type application struct {
-	logger        *logger.SnippetLogger
-	session       *sessions.Session
-	templateCache map[string]*template.Template
-	*sql.DB
+	logger         *logger.SnippetLogger
+	session        *sessions.Session
+	templateCache  map[string]*template.Template
+	userService    services.UserServiceInterface
+	snippetService services.SnippetServiceInterface
 }
 
 func main() {
@@ -48,7 +50,11 @@ func main() {
 		templateCache: templateCache,
 		logger:        sLogger,
 		session:       session.NewSession(),
-		DB:            connectionPool.DB,
+		userService: services.NewUserService(
+			repository.NewUserRepository(connectionPool.DB),
+			services.NewPasswordService(),
+		),
+		snippetService: services.NewSnippetService(repository.NewSnippetRepository(connectionPool.DB)),
 	}
 
 	app.initSentry()

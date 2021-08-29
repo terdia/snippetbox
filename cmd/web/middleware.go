@@ -8,8 +8,6 @@ import (
 
 	"github.com/justinas/nosurf"
 	"github.com/terdia/snippetbox/pkg/models"
-	"github.com/terdia/snippetbox/pkg/repository"
-	"github.com/terdia/snippetbox/pkg/services"
 )
 
 func secureHeaders(next http.Handler) http.Handler {
@@ -94,13 +92,7 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		//to be cleanup up, during dependency injection refactoring
-		userService := services.NewUserService(
-			repository.NewUserRepository(app.DB),
-			services.NewPasswordService(),
-		)
-
-		user, err := userService.GetById(app.session.GetInt(r, "authenticatedUserID"))
+		user, err := app.userService.GetById(app.session.GetInt(r, "authenticatedUserID"))
 		if errors.Is(err, models.ErrNoRecord) || !user.Active {
 			app.session.Remove(r, "authenticatedUserID")
 			next.ServeHTTP(rw, r)

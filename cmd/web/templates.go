@@ -20,7 +20,7 @@ type templateData struct {
 }
 
 //custom func for templates
-func toHumanReadable(t time.Time) string {
+func toHumanReadableDate(t time.Time) string {
 	if t.IsZero() {
 		return ""
 	}
@@ -30,7 +30,7 @@ func toHumanReadable(t time.Time) string {
 
 var (
 	functions = template.FuncMap{
-		"toHumanReadable": toHumanReadable,
+		"toHumanReadable": toHumanReadableDate,
 	}
 )
 

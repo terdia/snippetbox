@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func TestToHumanReadable(t *testing.T) {
+func TestToHumanReadableDate(t *testing.T) {
 
 	tests := []struct {
 		name string
@@ -35,7 +35,7 @@ func TestToHumanReadable(t *testing.T) {
 		// identify the sub-test in any log output) and the second parameter is
 		// an anonymous function containing the actual test for each case.
 		t.Run(test.name, func(t *testing.T) {
-			humandReadable := toHumanReadable(test.tm)
+			humandReadable := toHumanReadableDate(test.tm)
 			if humandReadable != test.want {
 				t.Errorf("want %q; got %q", test.want, humandReadable)
 			}

@@ -33,6 +33,8 @@ func (app *application) routes() http.Handler {
 	router.With(dm...).Post("/user/login", app.loginUser)
 	router.With(append(dm, app.requireAuthentication)...).Post("/user/logout", app.logoutUser)
 
+	router.Get("/ping", http.HandlerFunc(ping))
+
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	router.Handle("/static/*", http.StripPrefix("/static", fileServer))
 

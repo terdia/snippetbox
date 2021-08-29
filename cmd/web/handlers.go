@@ -9,15 +9,15 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/terdia/snippetbox/pkg/forms"
 	"github.com/terdia/snippetbox/pkg/models"
-	"github.com/terdia/snippetbox/pkg/repository"
-	"github.com/terdia/snippetbox/pkg/services"
 )
+
+func ping(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("OK"))
+}
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
-	service := services.NewSnippetService(repository.NewSnippetRepository(app.DB))
-
-	snippets, err := service.GetLatest()
+	snippets, err := app.snippetService.GetLatest()
 	if err != nil {
 		app.serverError(w, err)
 
@@ -39,9 +39,7 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	service := services.NewSnippetService(repository.NewSnippetRepository(app.DB))
-
-	s, err := service.GetById(id)
+	s, err := app.snippetService.GetById(id)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
 			app.notFound(w)
@@ -71,9 +69,7 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	service := services.NewSnippetService(repository.NewSnippetRepository(app.DB))
-
-	id, form, err := service.CreateSnippet(forms.New(r.PostForm))
+	id, form, err := app.snippetService.CreateSnippet(forms.New(r.PostForm))
 
 	// If the form isn't valid, redisplay the template passing in the
 	// form.Form object as the data.
