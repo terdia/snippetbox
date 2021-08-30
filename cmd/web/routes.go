@@ -23,6 +23,7 @@ func (app *application) routes() http.Handler {
 	}
 
 	router.With(dm...).Get("/", app.home)
+	router.With(dm...).Get("/about", app.about)
 	router.With(append(dm, app.requireAuthentication)...).Get("/snippet/create", app.createSnippetForm)
 	router.With(append(dm, app.requireAuthentication)...).Post("/snippet/create", app.createSnippet)
 	router.With(dm...).Get("/snippet/{id}", app.showSnippet)
