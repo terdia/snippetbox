@@ -1,11 +1,14 @@
 package main
 
 import (
+	"html"
 	"io"
 	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
+	"net/url"
+	"regexp"
 	"testing"
 	"time"
 
@@ -15,10 +18,22 @@ import (
 	"github.com/terdia/snippetbox/pkg/services"
 )
 
+var csrfTokenRX = regexp.MustCompile(`<input type='hidden' name='csrf_token' value='(.+)'>`)
+
 type IntegrationTestResponse struct {
 	StatusCode int
 	Header     http.Header
 	Body       []byte
+}
+
+func extractCSRFToken(t *testing.T, body []byte) string {
+
+	matches := csrfTokenRX.FindSubmatch(body)
+	if len(matches) < 2 {
+		t.Fatal("no csrf token found in body")
+	}
+
+	return html.UnescapeString(string(matches[1]))
 }
 
 func newTestApplication(t *testing.T) *application {
@@ -78,7 +93,7 @@ func newTestServer(t *testing.T, h http.Handler) *testServer {
 // Implement a get method on our custom testServer type. This makes a GET
 // request to a given url path on the test server, and returns the response
 // status code, headers and body.
-func (ts *testServer) Get(t *testing.T, urlPath string) IntegrationTestResponse {
+func (ts *testServer) get(t *testing.T, urlPath string) IntegrationTestResponse {
 	rs, err := ts.Client().Get(ts.URL + urlPath)
 	if err != nil {
 		t.Fatal(err)
@@ -91,6 +106,25 @@ func (ts *testServer) Get(t *testing.T, urlPath string) IntegrationTestResponse 
 	return IntegrationTestResponse{
 		StatusCode: rs.StatusCode,
 		Header:     rs.Header,
+		Body:       body,
+	}
+}
+
+func (ts *testServer) postForm(t *testing.T, urlPath string, form url.Values) IntegrationTestResponse {
+	res, err := ts.Client().PostForm(ts.URL+urlPath, form)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return IntegrationTestResponse{
+		StatusCode: res.StatusCode,
+		Header:     res.Header,
 		Body:       body,
 	}
 }

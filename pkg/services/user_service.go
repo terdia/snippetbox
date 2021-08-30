@@ -40,8 +40,8 @@ func (service *userService) SignupUser(form *forms.Form) (*forms.Form, error) {
 	form.MatchesPattern("email", forms.EmailRX)
 
 	if form.Valid() {
-		emailExists := service.repository.Unique("email", form.Get("email"))
-		if !emailExists {
+		found := service.repository.Unique("email", form.Get("email"))
+		if !found {
 			form.Errors.Add("email", "Address is already in use")
 		}
 	}
