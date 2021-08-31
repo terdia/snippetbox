@@ -29,6 +29,7 @@
             <div>
                 <!-- Toggle the navigation links -->
                 {{if .IsAuthenticated}}
+                    <a href='/user/profile'>Profile</a>
                     <form action='/user/logout' method='POST'>
                         <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
                         <button>Logout</button>

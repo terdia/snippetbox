@@ -117,3 +117,52 @@ func TestSignupUser(t *testing.T) {
 		})
 	}
 }
+
+//Unauthenticated users are redirected to the login form.
+//Authenticated users are shown the form to create a new snippet.
+
+func TestCreateSnippetForm(t *testing.T) {
+
+	app := newTestApplication(t)
+
+	ts := newTestServer(t, app.routes())
+	defer ts.Close()
+
+	t.Run("Unauthenticated User", func(t *testing.T) {
+		res := ts.get(t, "/snippet/create")
+
+		if res.StatusCode != http.StatusSeeOther {
+			t.Errorf("wants %d; got %d", http.StatusSeeOther, res.StatusCode)
+		}
+
+		location := res.Header.Get("Location")
+
+		if location != "/user/login" {
+			t.Errorf("wants %s; got %s", "/user/login", location)
+		}
+	})
+
+	t.Run("Authenticated User", func(t *testing.T) {
+		loginPageRes := ts.get(t, "/user/login")
+		csrfToken := extractCSRFToken(t, loginPageRes.Body)
+
+		loginForm := url.Values{}
+		loginForm.Add("email", "terry@yahoo.com")
+		loginForm.Add("password", "1234567")
+		loginForm.Add("csrf_token", csrfToken)
+
+		_ = ts.postForm(t, "/user/login", loginForm)
+
+		resp := ts.get(t, "/snippet/create")
+		if resp.StatusCode != http.StatusOK {
+			t.Errorf("wants %d; got %d", http.StatusOK, resp.StatusCode)
+		}
+
+		formTag := "<form action='/snippet/create' method='POST'>"
+		if !bytes.Contains(resp.Body, []byte(formTag)) {
+			t.Errorf("want body %s to contain %q", resp.Body, formTag)
+		}
+
+	})
+
+}

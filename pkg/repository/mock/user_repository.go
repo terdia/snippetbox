@@ -14,11 +14,12 @@ func NewUserRepository() repository.UserRepository {
 }
 
 var mockUser = &models.User{
-	ID:      1,
-	Name:    "Terry",
-	Email:   "terry@yahoo.com",
-	Active:  true,
-	Created: time.Now(),
+	ID:             1,
+	Name:           "Terry",
+	Email:          "terry@yahoo.com",
+	Active:         true,
+	Created:        time.Now(),
+	HashedPassword: []byte("$2a$12$MlU36qi0aP80m4J3rrhuj.AWU7gM96Co9Ch.FH/5cXlOGAn.HNoyu"),
 }
 
 func (repo *userRepository) GetById(id int) (*models.User, error) {

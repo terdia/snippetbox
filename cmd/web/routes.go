@@ -32,6 +32,7 @@ func (app *application) routes() http.Handler {
 	router.With(dm...).Post("/user/signup", app.signupUser)
 	router.With(dm...).Get("/user/login", app.loginUserForm)
 	router.With(dm...).Post("/user/login", app.loginUser)
+	router.With(append(dm, app.requireAuthentication)...).Get("/user/profile", app.userProfle)
 	router.With(append(dm, app.requireAuthentication)...).Post("/user/logout", app.logoutUser)
 
 	router.Get("/ping", http.HandlerFunc(ping))

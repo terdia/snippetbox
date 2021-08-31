@@ -66,7 +66,12 @@ func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 
 	app.session.Put(r, "authenticatedUserID", user.ID)
 
-	http.Redirect(w, r, "/snippet/create", http.StatusSeeOther)
+	redirectPathAfterLogin := app.session.PopString(r, "redirectPathAfterLogin")
+	if redirectPathAfterLogin == "" {
+		redirectPathAfterLogin = "/snippet/create"
+	}
+
+	http.Redirect(w, r, redirectPathAfterLogin, http.StatusSeeOther)
 }
 
 func (app *application) logoutUser(w http.ResponseWriter, r *http.Request) {
@@ -75,4 +80,16 @@ func (app *application) logoutUser(w http.ResponseWriter, r *http.Request) {
 	app.session.Put(r, "flash", "You've been logged out successfully!")
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (app *application) userProfle(w http.ResponseWriter, r *http.Request) {
+
+	user, err := app.userService.GetById(app.session.GetInt(r, "authenticatedUserID"))
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+
+	app.render(w, r, "profile.page.tmpl", &templateData{User: user})
 }
